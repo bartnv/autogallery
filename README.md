@@ -27,3 +27,14 @@ changes.
 The data.php script has a cleaning mode to clean up the cache directory. This
 is useful if you've changed the images or the $dims array. To do this, call
 data.php?clean=1 from your browser.
+
+## Using GalleryIndex
+The index.html and data.php in the galleryindex directory can generate an
+overview of multiple galleries. To use that, copy these two files to the
+parent directory of one or more AutoGalleries. The directory name of each
+AutoGallery will be used as the gallery name in the overview. Visitors can
+click on specific images in the overview to be taken directly to that image
+in the gallery.
+
+Two levels of gallery indexes are also supported, but no more than that at this
+time.
