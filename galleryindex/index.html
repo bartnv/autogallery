@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" href="favicon.png" />
+<title>MMVI Autogallery Index</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
+<script type="text/javascript">
+/* Copyright 2016 Bart Noordervliet (https://www.mmvi.nl/)
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+$(document).ready(function() {
+  $.ajax({
+    url: 'data.php',
+    data: "req=dirs",
+    success: readDirs,
+    cache: false
+  });
+});
+
+function readDirs(json, status) {
+  var dirs = json['dirs'].sort();
+  for (var i in dirs) {
+    var link = $('<A>');
+    link.attr('href', dirs[i] + '/');
+    var title = $('<P>');
+    title.addClass('title');
+    title.html(dirs[i].replace('_', ' '));
+    var block = $('<DIV>');
+    block.addClass('block');
+    block.append(title);
+    link.append(block);
+    $('#main').append(link);
+
+    $.ajax({
+      url: dirs[i] + "/data.php",
+      data: "req=list",
+      success: readList,
+      passData: { title: dirs[i], div: block }
+    });
+  }
+}
+
+function readList(data, title) {
+  if (!data['files']) return;
+  var files = data['files'].sort();
+  var mult = Math.max(Math.floor(files.length/9), 1);
+  for (var i = 0; files[i]; i += mult) {
+    if (i/mult == 9) break;
+    var slash = files[i].lastIndexOf('/');
+    if (slash > 0) var img = $('<a href="' + this.passData['title'] + '/#' + i + '"><img class="thumb" src="' + this.passData['title'] + '/' + files[i].substring(0, slash) + '/data.php?img=' + files[i].substring(slash+1) + '&size=thumb"></a>');
+    else var img = $('<a href="' + this.passData['title'] + '/#' + i + '"><img class="thumb" src="' + this.passData['title'] + '/data.php?img=' + files[i] + '&size=thumb"></a>');
+    this.passData['div'].append(img);
+  }
+  this.passData['div'].append('<p class="footer"># foto\'s in gallery</p>'.replace('#', files.length));
+}
+
+</script>
+<style>
+* { margin: 0; padding: 0; }
+BODY { background: black; }
+DIV.block { width: 297px; height: 335px; margin: 10px; padding: 5px; border: solid grey 1px; border-radius: 25px; display: inline-block; }
+P.title { color: white; text-align: center; font-family: sans-serif; }
+P.footer { margin-left: 10px; color: grey; font-family: sans-serif; text-align: left; }
+IMG.thumb { float: left; margin: 2px; width: 95px; height: 95px; display: block; border: 0; }
+DIV#main { max-width: 800px; margin: 0 auto; text-align: center; }
+</style>
+</head>
+<body>
+<div id="main">
+</div>
+</body>
+</html>
