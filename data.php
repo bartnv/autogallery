@@ -2,6 +2,7 @@
 
 $images = ".";
 $cache = ".imgcache";
+$jpegquality = 90;
 
 $dims = array(800, 1280, 1440, 1920, 2560);
 
@@ -38,7 +39,7 @@ if (isset($_GET['img']) && !empty($_GET['img'])) {
     }
     if (!file_exists($filename) || (filemtime($filename) < filemtime($images . '/' . $_GET['img']))) {
       if (!list($w, $h) = getimagesize($images . '/' . $_GET['img'])) error('Unsupported image type');
-      if ($dim > max($w, $h)) { // Requested size is larger than original; just send original
+      if ($dim >= max($w, $h)) { // Requested size is equal to or larger than original; just send original
         $filename = $images . '/' . $_GET['img'];
       }
       else {
@@ -66,7 +67,7 @@ if (isset($_GET['img']) && !empty($_GET['img'])) {
         }
         $new = imagecreatetruecolor($neww, $newh);
         imagecopyresampled($new, $img, 0, 0, $x, $y, $neww, $newh, $w, $h);
-        imagejpeg($new, $filename);
+        imagejpeg($new, $filename, $jpegquality);
       }
     }
     header('Content-type: image/jpeg');
