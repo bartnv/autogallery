@@ -139,5 +139,23 @@ else {
       }
     }
   }
-  print " ] }";
+  print " ]";
+  if (file_exists('copyright.txt')) {
+    $first = 1;
+    print ", \"copyright\" : { ";
+    $lines = preg_split("/\r\n|\n|\r/", file_get_contents('copyright.txt'));
+    foreach ($lines as $line) {
+      list($key, $value) = explode(':', $line, 2);
+      if (empty($key) || empty($value)) continue;
+      $key = trim($key);
+      $value = trim($value);
+      if (!$first) print ", \"$key\" : \"$value\"";
+      else {
+        print "\"$key\" : \"$value\"";
+        $first = 0;
+      }
+    }
+    print " }";
+  }
+  print " }";
 }
