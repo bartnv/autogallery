@@ -181,6 +181,7 @@ function imageShow(refresh) {
     );
   }
   if (!refresh) $('#viewer').append(img.full);
+  location.hash = app.imageShowing;
 }
 function thumbAdvance() {
   $('#active').css({ top: ((app.imageShowing+1)*97-58) + 'px' });
