@@ -103,7 +103,7 @@ function preloadThumb(first, last) {
     $(image)
       .load({ index : i }, thumbLoaded)
       .error(function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
-      .attr('src', 'data.php?img=' + app.files[i] + '&size=thumb');
+      .attr('src', 'data.php?img=' + encodeURIComponent(app.files[i]) + '&size=thumb');
     app.imageArray[i].name = app.files[i];
     app.imageArray[i].thumb = image;
   }
@@ -119,7 +119,7 @@ function preloadFull(first, last) {
         $(image)
           .load({ index : i }, imageLoaded)
           .error(function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
-          .attr('src', 'data.php?img=' + app.files[i] + '&size=' + Math.max(app.height, app.width));
+          .attr('src', 'data.php?img=' + encodeURIComponent(app.files[i]) + '&size=' + Math.max(app.height, app.width));
         app.imageArray[i].full = image;
       }
     }
@@ -133,7 +133,7 @@ function preloadFull(first, last) {
         $(image)
           .load({ index : i }, imageLoaded)
           .error(function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
-          .attr('src', 'data.php?img=' + app.files[i] + '&size=' + Math.max(app.height, app.width));
+          .attr('src', 'data.php?img=' + encodeURIComponent(app.files[i]) + '&size=' + Math.max(app.height, app.width));
         app.imageArray[i].full = image;
       }
     }
@@ -376,7 +376,7 @@ function viewClick() {
 }
 
 function downloadClick() {
-  window.location = 'data.php?img=' + app.files[app.imageShowing] + '&size=original';
+  window.location = 'data.php?img=' + encodeURIComponent(app.files[app.imageShowing]) + '&size=original';
 }
 function downloadAllClick() {
   window.location = 'data.php?zip=true';
