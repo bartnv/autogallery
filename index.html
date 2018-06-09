@@ -4,12 +4,12 @@
 <meta charset="utf8">
 <title>MMVI AutoGallery</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/screenfull.js/3.0.0/screenfull.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/velocity/2.0.4/velocity.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/screenfull.js/3.3.2/screenfull.min.js"></script>
 <script type="text/javascript">
-/* Copyright 2017 Bart Noordervliet (https://www.mmvi.nl/)
+/* Copyright 2018 Bart Noordervliet (https://www.mmvi.nl/)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
  * published by the Free Software Foundation.
@@ -26,6 +26,7 @@ var app = {
   imageShowing : 0,
   lastPreload : 0,
   thumbOffset : 0,
+  thumbSize: 95,
   mouseY : 0,
   dragged : false,
   thumbs : true,
@@ -36,32 +37,30 @@ var app = {
 
 $(document).ready(function() {
   $(window)
-    .resize(winch)
-    .bind('orientationchange', orientationChange);
+    .on('resize', winch)
+    .on('orientationchange', orientationChange);
   if (screenfull) document.addEventListener(screenfull.raw.fullscreenchange, function() { setTimeout(winch, 500); });
   winch();
-  $.ajaxSetup({
-    url: 'data.php'
-  });
   $.ajax({
-    data: "req=list",
+    url: 'data.php',
+    data: 'req=list',
     success: readList,
     ifmodified: true
   });
-  app.imageArray = new Array();
+  app.imageArray = [];
   $('#thumbbar')
-    .mousedown(thumbDown)
-    .bind('touchstart', thumbDown)
-    .mouseup(thumbUp)
-    .bind('touchend', thumbUp);
+    .on('mousedown', thumbDown)
+    .on('touchstart', thumbDown)
+    .on('mouseup', thumbUp)
+    .on('touchend', thumbUp);
   $('#viewer')
-    .mousedown(viewDown)
-    .bind('touchstart', viewDown)
-    .mouseup(viewUp)
-    .bind('touchend', viewUp);
+    .on('mousedown', viewDown)
+    .on('touchstart', viewDown)
+    .on('mouseup', viewUp)
+    .on('touchend', viewUp);
   $(document)
-    .keydown(keyDown)
-    .mousewheel(mouseScroll);
+    .on('keydown', keyDown)
+    .on('mousewheel', mouseScroll);
   if (location.hash && (parseInt(location.hash.substring(1)) > 0)) app.imageShowing = parseInt(location.hash.substring(1));
 });
 
@@ -98,11 +97,11 @@ function readList(data, status) {
 function preloadThumb(first, last) {
   for (var i = first; i <= last; i++) {
     if (!app.files[i]) return;
-    if (!app.imageArray[i]) app.imageArray[i] = new Object();
-    var image = new Image();
+    if (!app.imageArray[i]) app.imageArray[i] = {};
+    var image = new Image(app.thumbSize, app.thumbSize);
     $(image)
-      .load({ index : i }, thumbLoaded)
-      .error(function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
+      .on('load', { index : i }, thumbLoaded)
+      .on('error', function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
       .attr('src', 'data.php?img=' + encodeURIComponent(app.files[i]) + '&size=thumb');
     app.imageArray[i].name = app.files[i];
     app.imageArray[i].thumb = image;
@@ -113,12 +112,12 @@ function preloadFull(first, last) {
   if (first > last) {
     for (i = first; i >= last; i--) {
       if ((i < 0) || !app.files[i]) return;
-      if (!app.imageArray[i]) app.imageArray[i] = new Object();
+      if (!app.imageArray[i]) app.imageArray[i] = {};
       if (!app.imageArray[i].full) {
         var image = new Image();
         $(image)
-          .load({ index : i }, imageLoaded)
-          .error(function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
+          .on('load', { index : i }, imageLoaded)
+          .on('error', function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
           .attr('src', 'data.php?img=' + encodeURIComponent(app.files[i]) + '&size=' + Math.max(app.height, app.width));
         app.imageArray[i].full = image;
       }
@@ -127,12 +126,12 @@ function preloadFull(first, last) {
   else {
     for (i = first; i <= last; i++) {
       if ((i >= app.files.length) || !app.files[i]) return;
-      if (!app.imageArray[i]) app.imageArray[i] = new Object();
+      if (!app.imageArray[i]) app.imageArray[i] = {};
       if (!app.imageArray[i].full) {
         var image = new Image();
         $(image)
-          .load({ index : i }, imageLoaded)
-          .error(function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
+          .on('load', { index : i }, imageLoaded)
+          .on('error', function() { if (app.files[i]) alert(app.files[i] + " failed to load"); })
           .attr('src', 'data.php?img=' + encodeURIComponent(app.files[i]) + '&size=' + Math.max(app.height, app.width));
         app.imageArray[i].full = image;
       }
@@ -171,7 +170,7 @@ function imageShow(refresh) {
     });
   }
   else {
-    $(img.full).transition({
+    $(img.full).velocity({
       left: ((viewerWidth-img.full.naturalWidth*scale)/2) + 'px',
       top: ((app.height-img.full.naturalHeight*scale)/2) + 'px',
       width: (img.full.naturalWidth*scale) + 'px',
@@ -189,7 +188,7 @@ function thumbAdvance() {
   while (app.imageShowing*97+app.thumbOffset < 1*97) app.thumbOffset += 97;
   if (app.thumbOffset-app.height < -(app.files.length*97+2)) app.thumbOffset = -(app.files.length*97+2-app.height);
   if (app.thumbOffset > 0) app.thumbOffset = 0;
-  $('#thumbs').transition({ top: app.thumbOffset + 'px' }, { queue: false, duration: 600, easing: 'ease' });
+  $('#thumbs').velocity({ top: app.thumbOffset + 'px' }, { queue: false, duration: 600, easing: 'ease' });
 }
 
 function keyDown(event) {
@@ -247,8 +246,8 @@ function thumbDown(evt) {
   app.mouseY = evt.pageY || evt.originalEvent.pageY || evt.originalEvent.changedTouches[0].pageY;
   app.dragged = false;
   $('#thumbbar')
-    .mousemove(thumbMove)
-    .bind('touchmove', thumbMove);
+    .on('mousemove', thumbMove)
+    .on('touchmove', thumbMove);
   return false;
 }
 function thumbMove(evt) {
@@ -256,8 +255,8 @@ function thumbMove(evt) {
   var pageX = evt.pageX || evt.originalEvent.pageX || evt.originalEvent.changedTouches[0].pageX;
   if ((pageY <= 1) || (pageX <= 1) || (pageY >= app.height-1) || (pageX >= 99)) {
     $(this)
-      .unbind('mousemove')
-      .unbind('touchmove');
+      .off('mousemove')
+      .off('touchmove');
     return false;
   }
 //  if (pageY == app.mouseY) return false;
@@ -277,8 +276,8 @@ function thumbMove(evt) {
 function thumbUp(evt) {
   if (evt.which > 1) return;
   $('#thumbbar')
-    .unbind('mousemove')
-    .unbind('touchmove');
+    .off('mousemove')
+    .off('touchmove');
   if (!app.dragged) thumbClick(evt);
 }
 function thumbClick(event) {
@@ -297,8 +296,8 @@ function viewDown(evt) {
   app.mouseX = evt.pageX || evt.originalEvent.pageX || evt.originalEvent.changedTouches[0].pageX;
   app.dragged = false;
   $('#viewer')
-    .mousemove(viewMove)
-    .bind('touchmove', viewMove);
+    .on('mousemove', viewMove)
+    .on('touchmove', viewMove);
   return false;
 }
 function viewMove(evt) {
@@ -307,12 +306,12 @@ function viewMove(evt) {
   if ((Math.abs(pageX-app.mouseX) < 10) && (Math.abs(pageY-app.mouseY) < 10)) return false;
   app.dragged = true;
   return false;
-}  
+}
 function viewUp(evt) {
   if (evt.which > 1) return;
   $('#thumbbar')
-    .unbind('mousemove')
-    .unbind('touchmove');
+    .off('mousemove')
+    .off('touchmove');
   if (!app.dragged) viewClick();
   else {
     var pageX = evt.pageX || evt.originalEvent.changedTouches[0].pageX;
@@ -334,28 +333,28 @@ function viewUp(evt) {
 function buttonsHide() {
   if (app.buttons) {
     app.buttons = false;
-    $('#buttons').transition({ left: (app.width-10) + 'px' }, { duration: 1000 });
+    $('#buttons').velocity({ left: (app.width-10) + 'px' }, { duration: 1000 });
     $('#arrow').css({ 'transform': 'scaleX(-1)', '-webkit-transform': 'scaleX(-1)', '-ms-transform': 'scaleX(-1)', '-moz-transform': 'scaleX(-1)', '-o-transform': 'scaleX(-1)' });
   }
   else {
     app.buttons = true;
-    $('#buttons').transition({ left: (app.width-106) + 'px' }, { duration: 1000 });
+    $('#buttons').velocity({ left: (app.width-106) + 'px' }, { duration: 1000 });
     $('#arrow').css({ 'transform': 'scaleX(1)', '-webkit-transform': 'scaleX(1)', '-ms-transform': 'scaleX(1)', '-moz-transform': 'scaleX(1)', '-o-transform': 'scaleX(1)' });
   }
 }
 function thumbsHide() {
   if (app.thumbs) {
     app.thumbs = false;
-    $('#thumbbar').transition({ left: '-100px' }, { duration: 500 });
-    $('#thumbtab').transition({ left: '-5px' }, { duration: 500 });
-    $('#viewer').transition({ left: '0px', width: app.width + 'px' });
+    $('#thumbbar').velocity({ left: '-100px' }, { duration: 500 });
+    $('#thumbtab').velocity({ left: '-5px' }, { duration: 500 });
+    $('#viewer').velocity({ left: '0px', width: app.width + 'px' });
     $('#thumbarrow').css({ 'transform': 'scaleX(-1)', '-webkit-transform': 'scaleX(-1)', '-ms-transform': 'scaleX(-1)', '-moz-transform': 'scaleX(-1)', '-o-transform': 'scaleX(-1)' });
   }
   else {
     app.thumbs = true;
-    $('#thumbbar').transition({ left: '0px' }, { duration: 500 });
-    $('#thumbtab').transition({ left: '95px' }, { duration: 500 });
-    $('#viewer').transition({ left: '100px', width: (app.width-100) + 'px' });
+    $('#thumbbar').velocity({ left: '0px' }, { duration: 500 });
+    $('#thumbtab').velocity({ left: '95px' }, { duration: 500 });
+    $('#viewer').velocity({ left: '100px', width: (app.width-100) + 'px' });
     $('#thumbarrow').css({ 'transform': 'scaleX(1)', '-webkit-transform': 'scaleX(1)', '-ms-transform': 'scaleX(1)', '-moz-transform': 'scaleX(1)', '-o-transform': 'scaleX(1)' });
   }
   imageShow(true);
