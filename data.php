@@ -18,7 +18,7 @@ if (isset($_GET['img']) && !empty($_GET['img'])) {
     if ($_GET['size'] == "original") {
       header('Content-type: image/jpeg');
       header('Content-length: ' . filesize($images . '/' . $_GET['img']));
-      header('Last-modified: ' . gmdate("D, d M Y H:i:s", filemtime($filename) . ' GMT'));
+      header('Last-modified: ' . gmdate("D, d M Y H:i:s", filemtime($filename)) . ' GMT');
       header('Content-disposition: attachment; filename="' . str_replace('"', '\"', $_GET['img']) . '"');
       readfile($images . '/' . $_GET['img']);
       exit;
@@ -72,7 +72,7 @@ if (isset($_GET['img']) && !empty($_GET['img'])) {
     }
     header('Content-type: image/jpeg');
     header('Content-length: ' . filesize($filename));
-    header('Last-modified: ' . gmdate("D, d M Y H:i:s", filemtime($filename) . ' GMT'));
+    header('Last-modified: ' . gmdate("D, d M Y H:i:s", filemtime($filename)) . ' GMT');
     readfile($filename);
   }
 }
@@ -125,7 +125,7 @@ elseif (isset($_GET['clean']) && !empty($_GET['clean'])) {
 else {
   header("Content-Type: application/json");
   $mtime = filemtime($images);
-  header("Last-Modified: ".gmdate("D, d M Y H:i:s", $mtime)." GMT");
+  header("Last-Modified: " . gmdate("D, d M Y H:i:s", $mtime) . " GMT");
 
   $dir = opendir($images);
   print "{ \"files\" : [ ";
