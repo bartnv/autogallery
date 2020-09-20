@@ -1,4 +1,4 @@
-<?
+<?php
 
 function error($text) {
   header('Content-type: text/plain');
